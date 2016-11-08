@@ -132,7 +132,7 @@ void CCS811::getData(void)
   {
     for(int i=0; i<4; i++){
       buffer[i] = Wire.read();
-      Serial.print(buffer[i]);
+      //Serial.print(buffer[i]);
     }
   }
   CO2 = ((uint8_t)buffer[0] << 8) + buffer[1];

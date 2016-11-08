@@ -2,7 +2,7 @@
   This is an example for the CCS811 digital TVOC/eCO2 Sensor by CCMOSS/AMS
   http://www.ccmoss.com/gas-sensors#CCS811
 
-  October 28, 2016
+  November 8, 2016 [Hillary or Trump?]
 
   The sensor uses I2C protocol to communicate, and requires 2 pins - SDA and SCL
   Another GPIO is also required to assert the WAKE pin for communication. this
@@ -19,6 +19,7 @@
 
 #include <CCS811.h>
 
+//#define ADDR      0x5A
 #define ADDR      0x5B
 #define WAKE_PIN  4
 
@@ -28,12 +29,15 @@ void setup()
 {
   Serial.begin(115200);
   Serial.println("CCS811 test");
-  sensor.begin(uint8_t(ADDR), uint8_t(WAKE_PIN));
+  if(!sensor.begin(uint8_t(ADDR), uint8_t(WAKE_PIN)))
+    Serial.println("Initialization failed.");
 }
 
 void loop()
 {
-  sensor.readData();
-  Serial.print("CO2 concentration : "); Serial.println(sensor.readCO2());
+  sensor.getData();
+  Serial.print("CO2 concentration : "); Serial.print(sensor.readCO2()); Serial.println(" ppm");
+  Serial.print("TVOC concentration : "); Serial.print(sensor.readTVOC()); Serial.println(" ppb");
+  Serial.println();
   delay(2000);
 }
