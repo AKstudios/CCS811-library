@@ -54,16 +54,16 @@ class CCS811
     byte readHW_ID(void);
     int readTVOC(void);
     int readCO2(void);
-    void readData(void);
+    void getData(void);
     void compensate(float t, float rh);
     byte readErrorID(void);
     void reset(void);
     void sleep();
+    int TVOC, CO2;
 
   private:
     uint8_t _WAKE_PIN;
     uint8_t _I2C_ADDR;
-    int TVOC, CO2;
 };
 
 #endif
