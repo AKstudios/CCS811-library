@@ -3,7 +3,8 @@
   http://www.ccmoss.com/gas-sensors#CCS811
 
   November 8, 2016 [Hillary or Trump?]
-
+  November 9, 2016 [Update: Nevermind.]
+  
   The sensor uses I2C protocol to communicate, and requires 2 pins - SDA and SCL
   Another GPIO is also required to assert the WAKE pin for communication. this
   pin is passed by an argument in the begin function.
