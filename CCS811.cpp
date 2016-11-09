@@ -3,6 +3,7 @@
   http://www.ccmoss.com/gas-sensors#CCS811
 
   November 8, 2016 [Hillary or Trump?]
+  November 9, 2016 [Update: Nevermind.]
 
   The sensor uses I2C protocol to communicate, and requires 2 pins - SDA and SCL
   Another GPIO is also required to assert the WAKE pin for communication. this
@@ -51,10 +52,11 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
     return false;
   }
 
+  digitalWrite(_WAKE_PIN, LOW);
   Wire.beginTransmission(_I2C_ADDR); // least significant bit indicates write (0) or read (1)
-  Wire.write(APP_START<<1);
+  Wire.write(APP_START);
   Wire.endTransmission();
-  delay(1);
+  digitalWrite(_WAKE_PIN, HIGH);
 
   status = CCS811::readStatus();
   bit = (status & (1<<8-1)) !=0; // black magic to read FW_MODE bit from STATUS register
@@ -65,13 +67,14 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
     return false;
   }
 
+  digitalWrite(_WAKE_PIN, LOW);
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(MEAS_MODE);
-  Wire.write(0x00010000);  // constant power mode, IAQ measurement every second
+  Wire.write(0x10);  // constant power mode, IAQ measurement every second
   Wire.endTransmission();
-
   //CCS811::sleep();
   digitalWrite(_WAKE_PIN, HIGH);
+
   return true;
 }
 
@@ -145,16 +148,19 @@ void CCS811::getData(void)
 {
   //CCS811::compensate(t, rh);
   digitalWrite(_WAKE_PIN, LOW);
+  delay(1000);
 
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(ALG_RESULT_DATA);    // reading ALG_RESULT_DATA clears DATA_READY bit in 0x00
   Wire.endTransmission();
 
   Wire.requestFrom(_I2C_ADDR, (uint8_t)4);
+  delay(1);
   int buffer[4];
   if(Wire.available() == 4)
   {
-    for(int i=0; i<4; i++){
+    for(int i=0; i<4; i++)
+    {
       buffer[i] = Wire.read();
       //Serial.print(buffer[i]);
     }
@@ -164,6 +170,7 @@ void CCS811::getData(void)
 
   digitalWrite(_WAKE_PIN, HIGH);
 }
+
 
 
 /*
