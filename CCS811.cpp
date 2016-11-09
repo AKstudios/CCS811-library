@@ -47,11 +47,12 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
   if(bit != 1)
   {
     Serial.println("Error: No application firmware loaded.");
+    readErrorID(status);
     return false;
   }
 
-  Wire.beginTransmission(_I2C_ADDR);
-  Wire.write(APP_START);
+  Wire.beginTransmission(_I2C_ADDR); // least significant bit indicates write (0) or read (1)
+  Wire.write(APP_START<<1);
   Wire.endTransmission();
   delay(1);
 
@@ -60,6 +61,7 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
   if(bit != 1)
   {
     Serial.println("Error: Firmware still in boot mode.");
+    readErrorID(status);
     return false;
   }
 
@@ -103,6 +105,28 @@ byte CCS811::readHW_ID(void)
 
   digitalWrite(_WAKE_PIN, HIGH);
   return hw_id;
+}
+
+
+byte CCS811::readErrorID(byte _status)
+{
+  digitalWrite(_WAKE_PIN, LOW);
+  Wire.beginTransmission(_I2C_ADDR);
+  Wire.write(ERROR_ID);
+  Wire.endTransmission();
+
+  Wire.requestFrom(_I2C_ADDR, (uint8_t)1);
+  byte error_id = Wire.read();
+
+  digitalWrite(_WAKE_PIN, HIGH);
+  uint8_t bit = (_status & (1 << 1-1)) != 0; // black magic to read ERROR bit from STATUS register
+  if(bit == 1)
+  {
+    Serial.print("Error ID: ");
+    Serial.println(error_id);
+  }
+
+  return error_id;
 }
 
 

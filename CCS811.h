@@ -56,7 +56,7 @@ class CCS811
     int readCO2(void);
     void getData(void);
     void compensate(float t, float rh);
-    byte readErrorID(void);
+    byte readErrorID(byte _status);
     void reset(void);
     void sleep();
     int TVOC, CO2;
