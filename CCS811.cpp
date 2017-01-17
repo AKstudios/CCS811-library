@@ -248,7 +248,10 @@ void CCS811::compensate(float t, float rh)    // compensate for temperature and 
 
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(ENV_DATA);
-  //Wire.write()
+  Wire.write(_h);           // 7 bit humidity value
+  Wire.write(0);            // most significant fractional bit. Using 0 here - gives us accuracy of +/-1%. Current firmware (2016) only supports fractional increments of 0.5
+  Wire.write(_t);
+  Wire.write(0);
   Wire.endTransmission();
 
   digitalWrite(_WAKE_PIN, HIGH);
