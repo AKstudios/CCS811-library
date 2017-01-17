@@ -238,19 +238,19 @@ void CCS811::compensate(float t, float rh)    // compensate for temperature and 
 {
   digitalWrite(_WAKE_PIN, LOW);
 
-  int _t, _rh;
+  int _temp, _rh;
   if(t>0)
-    _t = (int)t + 0.5;  // this will round off the floating point to the nearest integer value
+    _temp = (int)t + 0.5;  // this will round off the floating point to the nearest integer value
   else if(t<0)
-    _t = (int)t - 0.5;
-  _t = _t + 25;  // temperature high byte is stored as T+25°C so the value of byte is positive
+    _temp = (int)t - 0.5;
+  _temp = _temp + 25;  // temperature high byte is stored as T+25°C so the value of byte is positive
   _rh = (int)rh + 0.5;  // this will round off the floating point to the nearest integer value
 
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(ENV_DATA);
-  Wire.write(_h);           // 7 bit humidity value
+  Wire.write(_rh);           // 7 bit humidity value
   Wire.write(0);            // most significant fractional bit. Using 0 here - gives us accuracy of +/-1%. Current firmware (2016) only supports fractional increments of 0.5
-  Wire.write(_t);
+  Wire.write(_temp);
   Wire.write(0);
   Wire.endTransmission();
 
