@@ -2,8 +2,7 @@
   This is a library for the CCS811 digital TVOC/eCO2 Sensor by CCMOSS/AMS
   http://www.ccmoss.com/gas-sensors#CCS811
 
-  November 8, 2016 [Hillary or Trump?]
-  November 9, 2016 [Update: Nevermind.]
+  Updated: March 28, 2017
 
   The sensor uses I2C protocol to communicate, and requires 2 pins - SDA and SCL
   Another GPIO is also required to assert the WAKE pin for communication. this
@@ -16,6 +15,7 @@
 
   Written by Akram Ali from AKstudios (www.akstudios.com)
   GitHub: https://github.com/AKstudios/
+
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
@@ -23,7 +23,7 @@
 
 CCS811::CCS811()
 {
-
+  // empty constructor, just because.
 }
 
 
@@ -172,56 +172,6 @@ void CCS811::getData(void)
 }
 
 
-
-/*
-void CCS811::readData(void)
-{
-  digitalWrite(_WAKE_PIN, LOW);
-  //CCS811::compensate();
-  //boolean dataFlag = true;
-  uint8_t buffer[4];
-  uint8_t bit = 0;
-  //unsigned long t1 = millis(), t2;
-  while(bit != 1)  // if bit is 0, no new samples are ready
-  {
-    byte status = CCS811::readStatus();
-    bit = (status & (1<<4-1)) !=0; // black magic to read DATA_READY bit from STATUS register
-    if(bit == 1)  // if bit is 1, new data is ready in ALG_RESULT_DATA register
-    {
-      dataFlag = true;
-      break;
-    }
-
-    t2 = millis();
-    if(t2-t1 > 1000)  // timeout after 1 second if no new data is available
-    {
-      TVOC  =-1;
-      CO2 = -1;
-      break;
-    }
-    dataFlag = false;
-    delayMicroseconds(50);  // give some time before polling STATUS register again
-  }
-
-  if(dataFlag)
-  {
-    Wire.beginTransmission(_I2C_ADDR);
-    Wire.write(ALG_RESULT_DATA);    // reading ALG_RESULT_DATA clears DATA_READY bit in 0x00
-    Wire.endTransmission();
-
-    Wire.requestFrom(_I2C_ADDR, (uint8_t)4);
-    if(Wire.available() != 4)
-      return;
-
-    for(uint8_t i=0; i<4; i++)
-      buffer[i] = Wire.read();
-
-    CO2 = ((uint8_t)buffer[0] << 8) + buffer[1];
-    TVOC = ((uint8_t)buffer[2] << 8) + buffer[3];
-  }
-}
-*/
-
 int CCS811::readTVOC(void)
 {
   return TVOC;
@@ -241,18 +191,27 @@ void CCS811::compensate(float t, float rh)    // compensate for temperature and 
   int _temp, _rh;
   if(t>0)
     _temp = (int)t + 0.5;  // this will round off the floating point to the nearest integer value
-  else if(t<0)
+  else if(t<0) // account for negative temperatures
     _temp = (int)t - 0.5;
-  _temp = _temp + 25;  // temperature high byte is stored as T+25°C so the value of byte is positive
+  _temp = _temp + 25;  // temperature high byte is stored as T+25°C in the sensor's memory so the value of byte is positive
   _rh = (int)rh + 0.5;  // this will round off the floating point to the nearest integer value
+
+  byte _ENV_DATA[4];
+
+  _ENV_DATA[0] = _rh << 1;  // shift the binary number to left by 1. This is stored as a 7-bit value
+  _ENV_DATA[1] = 0;  // most significant fractional bit. Using 0 here - gives us accuracy of +/-1%. Current firmware (2016) only supports fractional increments of 0.5
+  _ENV_DATA[2] = _temp << 1;
+  _ENV_DATA[3] = 0;
 
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(ENV_DATA);
-  Wire.write(_rh);           // 7 bit humidity value
-  Wire.write(0);            // most significant fractional bit. Using 0 here - gives us accuracy of +/-1%. Current firmware (2016) only supports fractional increments of 0.5
-  Wire.write(_temp);
-  Wire.write(0);
+  Wire.write(_ENV_DATA[0]); // 7 bit humidity value
+  Wire.write(_ENV_DATA[1]);
+  Wire.write(_ENV_DATA[2]);
+  Wire.write(_ENV_DATA[3]);
   Wire.endTransmission();
 
   digitalWrite(_WAKE_PIN, HIGH);
 }
+
+// bruh
