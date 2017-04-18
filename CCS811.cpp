@@ -35,6 +35,7 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
   pinMode(_WAKE_PIN, OUTPUT);   // set WAKE pin as OUTPUT
   //PORTD &= ~(1<<PORTD4);  // assert WAKE pin LOW to initiate communication with sensor
   digitalWrite(_WAKE_PIN, LOW);  // WAKE_PIN on the sensor is active low, must always be asserted before any communication and held low throughout
+  delay(70); // from datasheet - up to 70ms on the first Reset after new application download; up to 20ms delay after power on
 
   byte hw_id = CCS811::readHW_ID();
   if(hw_id != 0x81)  // this is the expected hardware ID
