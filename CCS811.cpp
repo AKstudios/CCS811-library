@@ -2,7 +2,7 @@
   This is a library for the CCS811 digital TVOC/eCO2 Sensor by CCMOSS/AMS
   http://www.ccmoss.com/gas-sensors#CCS811
 
-  Updated: April 18, 2017
+  Updated: June 17, 2017
 
   The sensor uses I2C protocol to communicate, and requires 2 pins - SDA and SCL
   Another GPIO is also required to assert the WAKE pin for communication. this
@@ -34,17 +34,16 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
   _WAKE_PIN = WAKE_PIN;
   Wire.begin();
   pinMode(_WAKE_PIN, OUTPUT);   // set WAKE pin as OUTPUT
-  //PORTD &= ~(1<<PORTD4);  // assert WAKE pin LOW to initiate communication with sensor
-  digitalWrite(_WAKE_PIN, LOW);  // WAKE_PIN on the sensor is active low, must always be asserted before any communication and held low throughout
+  //digitalWrite(_WAKE_PIN, LOW);  // WAKE_PIN on the sensor is active low, must always be asserted before any communication and held low throughout
 
-  byte hw_id = CCS811::readHW_ID();
+  byte hw_id = readHW_ID();
   if(hw_id != 0x81)  // this is the expected hardware ID
   {
     Serial.println("Error: Incorrect Hardware ID detected.");
     return false;
   }
 
-  byte status = CCS811::readStatus();
+  byte status = readStatus();
   uint8_t bit = (status & (1 << 5-1)) != 0; // black magic to read APP_VALID bit from STATUS register
   if(bit != 1)
   {
@@ -53,13 +52,13 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
     return false;
   }
 
-  digitalWrite(_WAKE_PIN, LOW);
+  _digitalWrite(_WAKE_PIN, LOW);
   Wire.beginTransmission(_I2C_ADDR); // least significant bit indicates write (0) or read (1)
   Wire.write(APP_START);
   Wire.endTransmission();
   digitalWrite(_WAKE_PIN, HIGH);
 
-  status = CCS811::readStatus();
+  status = readStatus();
   bit = (status & (1<<8-1)) !=0; // black magic to read FW_MODE bit from STATUS register
   if(bit != 1)
   {
@@ -68,7 +67,7 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
     return false;
   }
 
-  digitalWrite(_WAKE_PIN, LOW);
+  _digitalWrite(_WAKE_PIN, LOW);
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(MEAS_MODE);
   Wire.write(0x10);  // constant power mode, IAQ measurement every second
@@ -82,7 +81,7 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
 
 byte CCS811::readStatus(void)
 {
-  digitalWrite(_WAKE_PIN, LOW);
+  _digitalWrite(_WAKE_PIN, LOW);
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(STATUS);
   Wire.endTransmission();
@@ -99,7 +98,7 @@ byte CCS811::readStatus(void)
 
 byte CCS811::readHW_ID(void)
 {
-  digitalWrite(_WAKE_PIN, LOW);
+  _digitalWrite(_WAKE_PIN, LOW);
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(HW_ID);
   Wire.endTransmission();
@@ -114,7 +113,7 @@ byte CCS811::readHW_ID(void)
 
 byte CCS811::readErrorID(byte _status)
 {
-  digitalWrite(_WAKE_PIN, LOW);
+  _digitalWrite(_WAKE_PIN, LOW);
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(ERROR_ID);
   Wire.endTransmission();
@@ -136,7 +135,7 @@ byte CCS811::readErrorID(byte _status)
 
 void CCS811::sleep()
 {
-  digitalWrite(_WAKE_PIN, LOW);
+  _digitalWrite(_WAKE_PIN, LOW);
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(MEAS_MODE);
   Wire.write(0x00000000);  // sets sensor to idle; measurements are disabled; lowest power mode
@@ -148,8 +147,8 @@ void CCS811::sleep()
 void CCS811::getData(void)
 {
   //CCS811::compensate(t, rh);
-  digitalWrite(_WAKE_PIN, LOW);
-  delay(1000);
+  _digitalWrite(_WAKE_PIN, LOW);
+  //delay(1000);
 
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(ALG_RESULT_DATA);    // reading ALG_RESULT_DATA clears DATA_READY bit in 0x00
@@ -187,7 +186,7 @@ int CCS811::readCO2(void)
 
 void CCS811::compensate(float t, float rh)    // compensate for temperature and relative humidity
 {
-  digitalWrite(_WAKE_PIN, LOW);
+  _digitalWrite(_WAKE_PIN, LOW);
 
   int _temp, _rh;
   if(t>0)
@@ -213,6 +212,12 @@ void CCS811::compensate(float t, float rh)    // compensate for temperature and 
   Wire.endTransmission();
 
   digitalWrite(_WAKE_PIN, HIGH);
+}
+
+void CCS811::_digitalWrite(uint8_t WAKE_PIN, bool VAL)    // asserts WAKE pin with a small delay to ensure reliable communication - thanks to djdehaan for this fix
+{
+  digitalWrite(WAKE_PIN, VAL);
+  delayMicroseconds(60);
 }
 
 // bruh

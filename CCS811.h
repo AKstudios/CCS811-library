@@ -2,7 +2,7 @@
   This is a library for the CCS811 digital TVOC/eCO2 Sensor by CCMOSS/AMS
   http://www.ccmoss.com/gas-sensors#CCS811
 
-  October 28, 2016
+  Updated: June 17, 2017
 
   The sensor uses I2C protocol to communicate, and requires 2 pins - SDA and SCL
   Another GPIO is also required to assert the WAKE pin for communication. this
@@ -15,6 +15,7 @@
 
   Written by Akram Ali from AKstudios (www.akstudios.com)
   GitHub: https://github.com/AKstudios/
+
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
@@ -52,11 +53,12 @@ class CCS811
     boolean begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN);
     byte readStatus(void);
     byte readHW_ID(void);
+    byte readErrorID(byte _status);
     int readTVOC(void);
     int readCO2(void);
     void getData(void);
     void compensate(float t, float rh);
-    byte readErrorID(byte _status);
+    void _digitalWrite(uint8_t WAKE_PIN, bool VAL);
     void reset(void);
     void sleep();
     int TVOC, CO2;
