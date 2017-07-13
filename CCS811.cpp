@@ -2,7 +2,7 @@
   This is a library for the CCS811 digital TVOC/eCO2 Sensor by CCMOSS/AMS
   http://www.ccmoss.com/gas-sensors#CCS811
 
-  Updated: June 17, 2017
+  Updated: July 13, 2017
 
   The sensor uses I2C protocol to communicate, and requires 2 pins - SDA and SCL
   Another GPIO is also required to assert the WAKE pin for communication. this
@@ -53,6 +53,7 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
   }
 
   _digitalWrite(_WAKE_PIN, LOW);
+  delayMicroseconds(50); // recommended 50us delay after asserting WAKE pin
   Wire.beginTransmission(_I2C_ADDR); // least significant bit indicates write (0) or read (1)
   Wire.write(APP_START);
   Wire.endTransmission();
@@ -68,6 +69,7 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
   }
 
   _digitalWrite(_WAKE_PIN, LOW);
+  delayMicroseconds(50); // recommended 50us delay after asserting WAKE pin
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(MEAS_MODE);
   Wire.write(0x10);  // constant power mode, IAQ measurement every second
@@ -81,7 +83,9 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
 
 byte CCS811::readStatus(void)
 {
+  delayMicroseconds(20); // recommended 20us delay while performing back to back I2C operations
   _digitalWrite(_WAKE_PIN, LOW);
+  delayMicroseconds(50); // recommended 50us delay after asserting WAKE pin
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(STATUS);
   Wire.endTransmission();
@@ -99,6 +103,7 @@ byte CCS811::readStatus(void)
 byte CCS811::readHW_ID(void)
 {
   _digitalWrite(_WAKE_PIN, LOW);
+  delayMicroseconds(50); // recommended 50us delay after asserting WAKE pin
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(HW_ID);
   Wire.endTransmission();
@@ -114,6 +119,7 @@ byte CCS811::readHW_ID(void)
 byte CCS811::readErrorID(byte _status)
 {
   _digitalWrite(_WAKE_PIN, LOW);
+  delayMicroseconds(50); // recommended 50us delay after asserting WAKE pin
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(ERROR_ID);
   Wire.endTransmission();
@@ -136,6 +142,7 @@ byte CCS811::readErrorID(byte _status)
 void CCS811::sleep()
 {
   _digitalWrite(_WAKE_PIN, LOW);
+  delayMicroseconds(50); // recommended 50us delay after asserting WAKE pin
   Wire.beginTransmission(_I2C_ADDR);
   Wire.write(MEAS_MODE);
   Wire.write(0x00000000);  // sets sensor to idle; measurements are disabled; lowest power mode
@@ -148,6 +155,7 @@ void CCS811::getData(void)
 {
   //CCS811::compensate(t, rh);
   _digitalWrite(_WAKE_PIN, LOW);
+  delayMicroseconds(50); // recommended 50us delay after asserting WAKE pin
   //delay(1000);
 
   Wire.beginTransmission(_I2C_ADDR);
@@ -187,7 +195,7 @@ int CCS811::readCO2(void)
 void CCS811::compensate(float t, float rh)    // compensate for temperature and relative humidity
 {
   _digitalWrite(_WAKE_PIN, LOW);
-
+  delayMicroseconds(50); // recommended 50us delay after asserting WAKE pin
   int _temp, _rh;
   if(t>0)
     _temp = (int)t + 0.5;  // this will round off the floating point to the nearest integer value
