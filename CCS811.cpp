@@ -163,7 +163,6 @@ void CCS811::getData(void)
   Wire.endTransmission();
 
   Wire.requestFrom(_I2C_ADDR, (uint8_t)4);
-  delay(1);
   int buffer[4];
   if(Wire.available() == 4)
   {
