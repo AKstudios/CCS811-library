@@ -32,7 +32,7 @@ boolean CCS811::begin(uint8_t I2C_ADDR, uint8_t WAKE_PIN)
   delay(70); // from datasheet - up to 70ms on the first Reset after new application download; up to 20ms delay after power on
   _I2C_ADDR = I2C_ADDR;
   _WAKE_PIN = WAKE_PIN;
-  Wire.begin();
+  // Wire.begin(); // Initiate the Wire library and join the I2C bus as a master or slave. This should normally be called only once.
   pinMode(_WAKE_PIN, OUTPUT);   // set WAKE pin as OUTPUT
   //digitalWrite(_WAKE_PIN, LOW);  // WAKE_PIN on the sensor is active low, must always be asserted before any communication and held low throughout
 
